@@ -22,11 +22,19 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      # 🔹 Create service_account.json from secret
+      # ✅ Properly create service_account.json from GitHub Secret
       - name: Create Google credentials file
-        run: echo "$GOOGLE_CRED_JSON" > service_account.json
+        run: |
+          echo "$GOOGLE_CRED_JSON" | jq . > service_account.json || printf '%s' "$GOOGLE_CRED_JSON" > service_account.json
+        shell: bash
         env:
           GOOGLE_CRED_JSON: ${{ secrets.GOOGLE_CRED_JSON }}
+
+      # 🧩 Optional: Verify that the file exists (you can remove later)
+      - name: Verify credentials file
+        run: |
+          ls -l service_account.json
+          head -n 5 service_account.json
 
       - name: Run script
         run: python stock_update.py
